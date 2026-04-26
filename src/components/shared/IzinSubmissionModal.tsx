@@ -111,7 +111,7 @@ export default function IzinSubmissionModal({ isOpen, onClose, type, onSuccess }
   const [kodeCabangTujuan, setKodeCabangTujuan] = useState('');
   const [jam, setJam] = useState<Date>(new Date(new Date().setHours(8, 0, 0, 0)));
   const [jamKeluar, setJamKeluar] = useState<Date>(new Date(new Date().setHours(8, 0, 0, 0)));
-  const [jamKembali, setJamKembali] = useState<Date | null>(new Date(new Date().setHours(17, 0, 0, 0)));
+  const [jamKembali, setJamKembali] = useState<Date>(new Date(new Date().setHours(17, 0, 0, 0)));
   const [keperluan, setKeperluan] = useState('P');
   const [file, setFile] = useState<File | null>(null);
   const [jamMasuk, setJamMasuk] = useState<Date>(new Date(new Date().setHours(8, 0, 0, 0)));
