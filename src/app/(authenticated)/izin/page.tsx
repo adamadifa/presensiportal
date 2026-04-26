@@ -15,9 +15,12 @@ import {
   IconCalendarEvent,
   IconClock,
   IconDotsVertical,
-  IconAlertCircle
+  IconAlertCircle,
+  IconAdjustments
 } from '@tabler/icons-react';
 import IzinSubmissionModal from '@/components/shared/IzinSubmissionModal';
+import Swal from 'sweetalert2';
+import { IconTrash } from '@tabler/icons-react';
 
 export default function IzinPage() {
   const router = useRouter();
@@ -62,6 +65,7 @@ export default function IzinPage() {
       case 'dinas': return <IconBriefcase size={20} color="#10b981" />;
       case 'pulang': return <IconLogout size={20} color="#8b5cf6" />;
       case 'keluar': return <IconWalk size={20} color="#6366f1" />;
+      case 'koreksi': return <IconAdjustments size={20} color="#334155" />;
       default: return <IconCalendarEvent size={20} color="#1565c0" />;
     }
   };
@@ -72,6 +76,42 @@ export default function IzinPage() {
     setIsFabOpen(false);
   };
 
+  const handleDelete = async (type: string, id: string) => {
+    const result = await Swal.fire({
+      title: 'Batalkan?',
+      text: "Batalkan pengajuan izin ini?",
+      icon: 'warning',
+      showCancelButton: true,
+      confirmButtonColor: '#ef4444',
+      cancelButtonColor: '#64748b',
+      confirmButtonText: 'Ya, Batalkan',
+      cancelButtonText: 'Tutup'
+    });
+
+    if (result.isConfirmed) {
+      try {
+        const token = authService.getToken();
+        if (token) {
+          const res = await authService.deleteIzin(token, type, id);
+          if (res.success) {
+            Swal.fire({
+              icon: 'success',
+              title: 'Dibatalkan',
+              text: res.message,
+              timer: 1500,
+              showConfirmButton: false
+            });
+            fetchHistory();
+          } else {
+            Swal.fire('Gagal', res.message, 'error');
+          }
+        }
+      } catch (error: any) {
+        Swal.fire('Error', error.message, 'error');
+      }
+    }
+  };
+
   const fabItems = [
     { type: 'sakit', label: 'Sakit', icon: <IconStethoscope size={20} />, color: '#ef4444' },
     { type: 'absen', label: 'Absen', icon: <IconMoodEmpty size={20} />, color: '#f59e0b' },
@@ -79,6 +119,7 @@ export default function IzinPage() {
     { type: 'dinas', label: 'Dinas', icon: <IconBriefcase size={20} />, color: '#10b981' },
     { type: 'pulang', label: 'Pulang', icon: <IconLogout size={20} />, color: '#8b5cf6' },
     { type: 'keluar', label: 'Keluar', icon: <IconWalk size={20} />, color: '#6366f1' },
+    { type: 'koreksi', label: 'Koreksi', icon: <IconAdjustments size={20} />, color: '#334155' },
   ];
 
   return (
@@ -173,17 +214,27 @@ export default function IzinPage() {
                   <div style={{ flex: 1 }}>
                     <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', marginBottom: '4px' }}>
                       <span style={{ fontSize: '14px', fontWeight: 800, color: '#1e293b' }}>Izin {item.tipe}</span>
-                      <span style={{ 
-                        fontSize: '10px', 
-                        fontWeight: 700, 
-                        padding: '4px 10px', 
-                        borderRadius: '20px', 
-                        background: status.bg, 
-                        color: status.text,
-                        textTransform: 'uppercase'
-                      }}>
-                        {status.label}
-                      </span>
+                      <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
+                        {Number(item.status) === 0 && (
+                          <button 
+                            onClick={() => handleDelete(item.tipe, item.id)}
+                            style={{ border: 'none', background: '#fee2e2', color: '#ef4444', padding: '4px', borderRadius: '6px', display: 'flex', alignItems: 'center', justifyContent: 'center' }}
+                          >
+                            <IconTrash size={14} />
+                          </button>
+                        )}
+                        <span style={{ 
+                          fontSize: '10px', 
+                          fontWeight: 700, 
+                          padding: '4px 10px', 
+                          borderRadius: '20px', 
+                          background: status.bg, 
+                          color: status.text,
+                          textTransform: 'uppercase'
+                        }}>
+                          {status.label}
+                        </span>
+                      </div>
                     </div>
                     <p style={{ fontSize: '12px', color: '#64748b', margin: '0 0 6px 0', lineClamp: 1, display: '-webkit-box', WebkitBoxOrient: 'vertical', overflow: 'hidden' }}>
                       {item.keterangan}

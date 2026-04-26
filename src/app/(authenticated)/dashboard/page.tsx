@@ -19,10 +19,12 @@ export default function DashboardPage() {
   const [summary, setSummary] = useState<AttendanceSummary | null>(null);
   const [todayAttendance, setTodayAttendance] = useState<any>(null);
   const [isLoggingOut, setIsLoggingOut] = useState(false);
+  const [hasMounted, setHasMounted] = useState(false);
 
   // Live clock
   useEffect(() => {
     setIsMounted(true);
+    setHasMounted(true);
     setClock(new Date());
     const timer = setInterval(() => setClock(new Date()), 1000);
     return () => clearInterval(timer);
@@ -113,7 +115,7 @@ export default function DashboardPage() {
     }
   };
 
-  if (isLoading) {
+  if (isLoading || !hasMounted) {
     return (
       <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', minHeight: '100dvh', background: '#ffffff' }}>
         <p style={{ fontSize: '16px', color: '#6b7280' }}>Loading...</p>
@@ -163,9 +165,14 @@ export default function DashboardPage() {
                 fontWeight: 700,
                 color: '#ffffff',
                 border: '2px solid rgba(255,255,255,0.4)',
+                overflow: 'hidden'
               }}
             >
-              {user?.nama_karyawan?.[0] || 'U'}
+              {user?.foto ? (
+                <img src={user.foto} alt="User Profile" style={{ width: '100%', height: '100%', objectFit: 'cover' }} />
+              ) : (
+                user?.nama_karyawan?.[0] || 'U'
+              )}
             </div>
             <div style={{ flex: 1 }}>
               <p style={{ fontSize: '15px', fontWeight: 700, color: '#ffffff' }}>{user?.nama_karyawan || 'User'}</p>
@@ -235,8 +242,22 @@ export default function DashboardPage() {
           <div style={{ display: 'flex', alignItems: 'center', borderRadius: '16px', padding: '16px 0' }}>
             {/* Jam Masuk */}
             <div style={{ flex: 1, display: 'flex', alignItems: 'center', gap: '12px' }}>
-              <div style={{ width: '44px', height: '44px', borderRadius: '12px', background: '#e8eaf6', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
-                <IconLogin size={22} color="#1565c0" stroke={2} />
+              <div style={{ 
+                width: '44px', 
+                height: '44px', 
+                borderRadius: '12px', 
+                background: '#e8eaf6', 
+                display: 'flex', 
+                alignItems: 'center', 
+                justifyContent: 'center',
+                overflow: 'hidden',
+                border: todayAttendance?.cek?.foto_in ? '1px solid #e2e8f0' : 'none'
+              }}>
+                {todayAttendance?.cek?.foto_in ? (
+                  <img src={todayAttendance.cek.foto_in} alt="Foto Masuk" style={{ width: '100%', height: '100%', objectFit: 'cover' }} />
+                ) : (
+                  <IconLogin size={22} color="#1565c0" stroke={2} />
+                )}
               </div>
               <div>
                 <p style={{ fontSize: '13px', fontWeight: 700, color: '#1f2937' }}>Jam Masuk</p>
@@ -249,8 +270,22 @@ export default function DashboardPage() {
             <div style={{ width: '1px', height: '40px', background: '#e5e7eb', margin: '0 8px' }} />
             {/* Jam Pulang */}
             <div style={{ flex: 1, display: 'flex', alignItems: 'center', gap: '12px' }}>
-              <div style={{ width: '44px', height: '44px', borderRadius: '12px', background: '#e8eaf6', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
-                <IconLogout2 size={22} color="#1565c0" stroke={2} />
+              <div style={{ 
+                width: '44px', 
+                height: '44px', 
+                borderRadius: '12px', 
+                background: '#e8eaf6', 
+                display: 'flex', 
+                alignItems: 'center', 
+                justifyContent: 'center',
+                overflow: 'hidden',
+                border: todayAttendance?.cek?.foto_out ? '1px solid #e2e8f0' : 'none'
+              }}>
+                {todayAttendance?.cek?.foto_out ? (
+                  <img src={todayAttendance.cek.foto_out} alt="Foto Pulang" style={{ width: '100%', height: '100%', objectFit: 'cover' }} />
+                ) : (
+                  <IconLogout2 size={22} color="#1565c0" stroke={2} />
+                )}
               </div>
               <div>
                 <p style={{ fontSize: '13px', fontWeight: 700, color: '#1f2937' }}>Jam Pulang</p>

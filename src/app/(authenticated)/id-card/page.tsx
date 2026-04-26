@@ -16,8 +16,12 @@ export default function IDCardPage() {
   const [isLoading, setIsLoading] = useState(true);
   const [isDownloading, setIsDownloading] = useState(false);
   const [imgError, setImgError] = useState(false);
+  const [hasMounted, setHasMounted] = useState(false);
+  const isMounted = useRef(true);
 
   useEffect(() => {
+    setHasMounted(true);
+    isMounted.current = true;
     const token = authService.getToken();
     const userData = authService.getUserData();
 
@@ -27,7 +31,7 @@ export default function IDCardPage() {
     }
 
     // Set initial data from local storage if available
-    if (userData) {
+    if (userData && isMounted.current) {
       setUser(userData);
       // If we already have the full data (nama_jabatan exists), we can stop loading
       if (userData.nama_jabatan) {
@@ -38,7 +42,7 @@ export default function IDCardPage() {
     // Always fetch latest data from server to get full details (jabatan, dept, etc)
     authService.getProfile(token)
       .then(res => {
-        if (res.success) {
+        if (res.success && isMounted.current) {
           setUser(res.data);
           authService.setUserData(res.data);
         }
@@ -46,7 +50,15 @@ export default function IDCardPage() {
       .catch(err => {
         console.error('Error fetching profile:', err);
       })
-      .finally(() => setIsLoading(false));
+      .finally(() => {
+        if (isMounted.current) {
+          setIsLoading(false);
+        }
+      });
+
+    return () => {
+      isMounted.current = false;
+    };
   }, [router]);
 
   const handleDownload = async () => {
@@ -90,7 +102,7 @@ export default function IDCardPage() {
     }
   };
 
-  if (isLoading) {
+  if (isLoading || !hasMounted) {
     return (
       <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', minHeight: '80dvh' }}>
         <div style={{ width: '40px', height: '40px', border: '3px solid #e2e8f0', borderTopColor: '#1565c0', borderRadius: '50%', animation: 'spin 1s linear infinite' }} />
@@ -98,9 +110,7 @@ export default function IDCardPage() {
     );
   }
 
-  const photoUrl = user?.foto 
-    ? `${process.env.NEXT_PUBLIC_API_URL?.replace('/api', '')}/storage/karyawan/${user.foto}` 
-    : null;
+  const photoUrl = user?.foto || null;
 
   // REUSABLE CARD COMPONENTS FOR PRINTING
   const CardFront = ({ isFixed = false }) => (
@@ -146,7 +156,6 @@ export default function IDCardPage() {
               <img 
                 src={photoUrl} 
                 alt="Photo" 
-                crossOrigin="anonymous"
                 style={{ width: '100%', height: '100%', objectFit: 'cover' }} 
                 onError={() => setImgError(true)}
               />

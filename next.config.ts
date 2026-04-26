@@ -9,7 +9,7 @@ const withPWA = withPWAInit({
 });
 
 const nextConfig: NextConfig = {
-  allowedDevOrigins: ['192.168.1.3', '192.168.1.4'],
+  allowedDevOrigins: ['192.168.1.3', '192.168.1.4', '192.168.1.5'],
   webpack: (config, { isServer }) => {
     if (!isServer) {
       config.resolve.fallback = {

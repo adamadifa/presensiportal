@@ -490,6 +490,19 @@ export const authService = {
     return response.json();
   },
 
+  async deleteIzin(token: string, type: string, id: string): Promise<{ success: boolean; message: string }> {
+    const response = await fetch(`${API_URL}/izin/${type}/${id}`, {
+      method: 'DELETE',
+      headers: {
+        'Authorization': `Bearer ${token}`,
+        'Accept': 'application/json',
+      },
+      credentials: 'include',
+    });
+
+    return response.json();
+  },
+
   async logout(token: string): Promise<{ success: boolean; message: string }> {
     const response = await fetch(`${API_URL}/logout-karyawan`, {
       method: 'POST',

@@ -148,7 +148,7 @@ export default function AttendancePage() {
         });
         // Refresh data
         setTimeout(() => {
-          window.location.reload();
+          router.push('/dashboard');
         }, 3000);
       } else {
         const isRadiusError = response.type === 'radius' || response.message.toLowerCase().includes('radius');

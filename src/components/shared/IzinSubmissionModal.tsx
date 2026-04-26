@@ -13,7 +13,8 @@ import {
   IconLogout,
   IconWalk,
   IconBeach,
-  IconChevronRight
+  IconChevronRight,
+  IconAdjustments
 } from '@tabler/icons-react';
 import Swal from 'sweetalert2';
 import DatePicker from 'react-datepicker';
@@ -113,6 +114,8 @@ export default function IzinSubmissionModal({ isOpen, onClose, type, onSuccess }
   const [jamKembali, setJamKembali] = useState<Date | null>(new Date(new Date().setHours(17, 0, 0, 0)));
   const [keperluan, setKeperluan] = useState('P');
   const [file, setFile] = useState<File | null>(null);
+  const [jamMasuk, setJamMasuk] = useState<Date>(new Date(new Date().setHours(8, 0, 0, 0)));
+  const [jamPulang, setJamPulang] = useState<Date>(new Date(new Date().setHours(17, 0, 0, 0)));
 
   useEffect(() => {
     if (isOpen) {
@@ -179,8 +182,13 @@ export default function IzinSubmissionModal({ isOpen, onClose, type, onSuccess }
 
       if (type === 'keluar') {
         submitData.append('jam_keluar', format(jamKeluar, 'HH:mm'));
-        if (jamKembali) submitData.append('jam_kembali', format(jamKembali, 'HH:mm'));
+        submitData.append('jam_kembali', format(jamKembali, 'HH:mm'));
         submitData.append('keperluan', keperluan);
+      }
+      
+      if (type === 'koreksi') {
+        submitData.append('jam_masuk', format(jamMasuk, 'HH:mm'));
+        submitData.append('jam_pulang', format(jamPulang, 'HH:mm'));
       }
 
       if (file) {
@@ -218,6 +226,8 @@ export default function IzinSubmissionModal({ isOpen, onClose, type, onSuccess }
     setJam(new Date(new Date().setHours(8, 0, 0, 0)));
     setJamKeluar(new Date(new Date().setHours(8, 0, 0, 0)));
     setJamKembali(new Date(new Date().setHours(17, 0, 0, 0)));
+    setJamMasuk(new Date(new Date().setHours(8, 0, 0, 0)));
+    setJamPulang(new Date(new Date().setHours(17, 0, 0, 0)));
     setKeterangan('');
     setFile(null);
   };
@@ -232,6 +242,7 @@ export default function IzinSubmissionModal({ isOpen, onClose, type, onSuccess }
       case 'dinas': return 'Izin Dinas';
       case 'pulang': return 'Izin Pulang';
       case 'keluar': return 'Izin Keluar';
+      case 'koreksi': return 'Izin Koreksi';
       default: return 'Pengajuan Izin';
     }
   };
@@ -244,6 +255,7 @@ export default function IzinSubmissionModal({ isOpen, onClose, type, onSuccess }
       case 'dinas': return <IconBriefcase size={24} />;
       case 'pulang': return <IconLogout size={24} />;
       case 'keluar': return <IconWalk size={24} />;
+      case 'koreksi': return <IconAdjustments size={24} />;
       default: return <IconCalendar size={24} />;
     }
   };
@@ -256,6 +268,7 @@ export default function IzinSubmissionModal({ isOpen, onClose, type, onSuccess }
       case 'dinas': return '#10b981';
       case 'pulang': return '#8b5cf6';
       case 'keluar': return '#6366f1';
+      case 'koreksi': return '#334155';
       default: return '#1565c0';
     }
   };
@@ -521,6 +534,24 @@ export default function IzinSubmissionModal({ isOpen, onClose, type, onSuccess }
                     </div>
                   </div>
                 </>
+              )}
+
+              {/* Koreksi Specific */}
+              {type === 'koreksi' && (
+                <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '16px' }}>
+                  <div>
+                    <label style={{ fontSize: '13px', fontWeight: 700, color: '#475569', display: 'block', marginBottom: '12px' }}>Jam Masuk</label>
+                    <div style={{ padding: '4px 8px', borderRadius: '14px', border: '1.5px solid #e2e8f0', background: '#f8fafc' }}>
+                      <TimeSplitPicker value={jamMasuk} onChange={setJamMasuk} />
+                    </div>
+                  </div>
+                  <div>
+                    <label style={{ fontSize: '13px', fontWeight: 700, color: '#475569', display: 'block', marginBottom: '12px' }}>Jam Pulang</label>
+                    <div style={{ padding: '4px 8px', borderRadius: '14px', border: '1.5px solid #e2e8f0', background: '#f8fafc' }}>
+                      <TimeSplitPicker value={jamPulang} onChange={setJamPulang} />
+                    </div>
+                  </div>
+                </div>
               )}
 
               {/* Keterangan */}
