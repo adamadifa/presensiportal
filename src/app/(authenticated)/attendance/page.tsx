@@ -13,6 +13,7 @@ import * as faceapi from 'face-api.js';
 const MapContainer = dynamic(() => import('react-leaflet').then(mod => mod.MapContainer), { ssr: false });
 const TileLayer = dynamic(() => import('react-leaflet').then(mod => mod.TileLayer), { ssr: false });
 const Marker = dynamic(() => import('react-leaflet').then(mod => mod.Marker), { ssr: false });
+const Circle = dynamic(() => import('react-leaflet').then(mod => mod.Circle), { ssr: false });
 
 // Haversine formula to calculate distance between two coordinates in meters
 function getDistanceInMeters(lat1: number, lng1: number, lat2: number, lng2: number): number {
@@ -48,6 +49,7 @@ export default function AttendancePage() {
 
   // Derived states
   const isWithinRadius = (() => {
+    if (attendanceData?.status_perjalanan_dinas) return true;
     if (!location || !attendanceData?.lok_kantor) return false;
     const [officeLat, officeLng] = attendanceData.lok_kantor.lokasi_cabang.split(',').map(Number);
     const distance = getDistanceInMeters(location.lat, location.lng, officeLat, officeLng);
@@ -92,9 +94,20 @@ export default function AttendancePage() {
 
   const captureImage = (): string | null => {
     if (!videoRef.current) return null;
+    
+    // Set maximum dimensions
+    const MAX_WIDTH = 640;
+    let width = videoRef.current.videoWidth;
+    let height = videoRef.current.videoHeight;
+
+    if (width > MAX_WIDTH) {
+      height = (MAX_WIDTH / width) * height;
+      width = MAX_WIDTH;
+    }
+
     const canvas = document.createElement('canvas');
-    canvas.width = videoRef.current.videoWidth;
-    canvas.height = videoRef.current.videoHeight;
+    canvas.width = width;
+    canvas.height = height;
     const ctx = canvas.getContext('2d');
     if (!ctx) return null;
     
@@ -103,7 +116,8 @@ export default function AttendancePage() {
     ctx.scale(-1, 1); // Flip horizontally because camera is mirrored
     ctx.drawImage(videoRef.current, 0, 0, canvas.width, canvas.height);
     
-    return canvas.toDataURL('image/png');
+    // Use JPEG with 0.8 quality for better compression
+    return canvas.toDataURL('image/jpeg', 0.8);
   };
 
   const handleAttendance = async () => {
@@ -414,6 +428,11 @@ export default function AttendancePage() {
                 LIBUR
               </div>
             )}
+            {attendanceData?.status_perjalanan_dinas && (
+              <div style={{ background: 'rgba(59,130,246,0.8)', backdropFilter: 'blur(10px)', padding: '6px 12px', borderRadius: '12px', fontSize: '11px', fontWeight: 700, color: '#ffffff' }}>
+                DINAS
+              </div>
+            )}
             <button style={{ border: 'none', background: 'rgba(255,255,255,0.2)', backdropFilter: 'blur(10px)', width: '40px', height: '40px', borderRadius: '12px', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
               <IconInfoCircle size={22} color="#ffffff" />
             </button>
@@ -491,6 +510,17 @@ export default function AttendancePage() {
                 <MapContainer center={[location.lat, location.lng]} zoom={15} style={{ height: '100%', width: '100%' }} zoomControl={false} dragging={false} scrollWheelZoom={false}>
                   <TileLayer url="https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png" />
                   <Marker position={[location.lat, location.lng]} />
+                  {attendanceData?.lok_kantor && (
+                    <Circle
+                      center={attendanceData.lok_kantor.lokasi_cabang.split(',').map(Number) as [number, number]}
+                      radius={attendanceData.lok_kantor.radius_cabang}
+                      pathOptions={{ 
+                        color: isWithinRadius ? '#22c55e' : '#ef4444', 
+                        fillColor: isWithinRadius ? '#22c55e' : '#ef4444', 
+                        fillOpacity: 0.15 
+                      }}
+                    />
+                  )}
                 </MapContainer>
               ) : (
                 <div style={{ height: '100%', display: 'flex', alignItems: 'center', justifyContent: 'center', color: '#64748b', fontSize: '13px' }}>
@@ -516,7 +546,7 @@ export default function AttendancePage() {
                     gap: '4px',
                   }}>
                     {isWithinRadius ? <IconCheck size={12} /> : <IconAlertTriangle size={12} />}
-                    {isWithinRadius ? 'Dalam Radius' : 'Luar Radius'}
+                    {attendanceData?.status_perjalanan_dinas ? 'Bebas Radius' : (isWithinRadius ? 'Dalam Radius' : 'Luar Radius')}
                   </div>
                 )}
               </div>

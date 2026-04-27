@@ -94,6 +94,7 @@ export interface AttendanceTodayData {
   status_libur: boolean;
   status_wfh: boolean;
   status_libur_pengganti: boolean;
+  status_perjalanan_dinas?: boolean;
 }
 
 export interface AttendanceTodayResponse {
