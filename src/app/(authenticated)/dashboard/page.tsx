@@ -43,12 +43,13 @@ export default function DashboardPage() {
       try {
         if (userData) {
           setUser(userData);
-        } else {
-          const profileResponse = await authService.getProfile(authToken);
-          if (profileResponse.success) {
-            setUser(profileResponse.data);
-            authService.setUserData(profileResponse.data);
-          }
+        }
+        
+        // Always fetch latest profile for complete data (dept, branch, etc)
+        const profileResponse = await authService.getProfile(authToken);
+        if (profileResponse.success) {
+          setUser(profileResponse.data);
+          authService.setUserData(profileResponse.data);
         }
 
         const historyResponse = await authService.getAttendanceHistory(authToken);

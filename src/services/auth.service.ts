@@ -504,6 +504,21 @@ export const authService = {
     return response.json();
   },
 
+  async changePassword(token: string, data: any): Promise<{ success: boolean; message: string }> {
+    const response = await fetch(`${API_URL}/update-password`, {
+      method: 'POST',
+      headers: {
+        'Authorization': `Bearer ${token}`,
+        'Content-Type': 'application/json',
+        'Accept': 'application/json',
+      },
+      body: JSON.stringify(data),
+      credentials: 'include',
+    });
+
+    return response.json();
+  },
+
   async logout(token: string): Promise<{ success: boolean; message: string }> {
     const response = await fetch(`${API_URL}/logout-karyawan`, {
       method: 'POST',
