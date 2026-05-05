@@ -7,7 +7,7 @@ import { authService, AttendanceTodayData } from '@/services/auth.service';
 import dynamic from 'next/dynamic';
 import 'leaflet/dist/leaflet.css';
 import Swal from 'sweetalert2';
-import * as faceapi from 'face-api.js';
+// import * as faceapi from 'face-api.js';
 
 // Dynamically import Leaflet components to avoid SSR issues
 const MapContainer = dynamic(() => import('react-leaflet').then(mod => mod.MapContainer), { ssr: false });
@@ -42,10 +42,10 @@ export default function AttendancePage() {
   const [isDataLoading, setIsDataLoading] = useState(true);
   const [isSubmitting, setIsSubmitting] = useState(false);
 
-  // Face Detection states
-  const [isModelsLoaded, setIsModelsLoaded] = useState(false);
-  const [isFaceDetected, setIsFaceDetected] = useState(false);
-  const [detectionInterval, setDetectionInterval] = useState<NodeJS.Timeout | null>(null);
+  // Face Detection states disabled
+  const [isModelsLoaded, setIsModelsLoaded] = useState(true);
+  const [isFaceDetected, setIsFaceDetected] = useState(true);
+  // const [detectionInterval, setDetectionInterval] = useState<NodeJS.Timeout | null>(null);
 
   // Derived states
   const isWithinRadius = (() => {
@@ -66,19 +66,19 @@ export default function AttendancePage() {
     if (isHoliday) return { label: 'HARI LIBUR', disabled: true, bg: '#94a3b8', status: 'none' };
     if (hasCheckedIn && hasCheckedOut) return { label: 'SUDAH PRESENSI LENGKAP', disabled: true, bg: '#22c55e', status: 'none' };
     
-    // Check for face detection
-    const isFaceReady = isModelsLoaded && isFaceDetected;
-    const isDisabled = !isCameraReady || !location || !isFaceReady || isSubmitting;
+    // Check for face detection (disabled)
+    // const isFaceReady = isModelsLoaded && isFaceDetected;
+    const isDisabled = !isCameraReady || !location || isSubmitting;
     
     if (hasCheckedIn && !hasCheckedOut) return { 
-        label: !isFaceDetected && isModelsLoaded ? 'WAJAH TIDAK TERDETEKSI' : 'ABSEN PULANG', 
+        label: 'ABSEN PULANG', 
         disabled: isDisabled, 
         bg: 'linear-gradient(135deg, #ef4444 0%, #dc2626 100%)', 
         status: 'pulang' 
     };
 
     return { 
-        label: !isFaceDetected && isModelsLoaded ? 'WAJAH TIDAK TERDETEKSI' : 'ABSEN MASUK', 
+        label: 'ABSEN MASUK', 
         disabled: isDisabled, 
         bg: 'linear-gradient(135deg, #1565c0 0%, #1e88e5 100%)', 
         status: 'masuk' 
@@ -266,7 +266,8 @@ export default function AttendancePage() {
       }
     };
 
-    // Load Face-API models
+    // Load Face-API models (disabled)
+    /*
     const loadModels = async () => {
       try {
         const MODEL_URL = 'https://vladmandic.github.io/face-api/model/';
@@ -299,11 +300,12 @@ export default function AttendancePage() {
         
         setDetectionInterval(interval);
     };
+    */
 
     fetchAttendanceData();
     startCamera();
     getGeolocation();
-    loadModels();
+    // loadModels();
 
     return () => {
       isMounted = false;
@@ -311,10 +313,11 @@ export default function AttendancePage() {
         streamRef.current.getTracks().forEach(track => track.stop());
         streamRef.current = null;
       }
-      if (detectionInterval) clearInterval(detectionInterval);
+      // if (detectionInterval) clearInterval(detectionInterval);
     };
   }, [router]); // Removed dependencies to prevent re-running
 
+  /* Face Detection Effect disabled
   useEffect(() => {
     if (isCameraReady && isModelsLoaded && isMounted) {
       const interval = setInterval(async () => {
@@ -333,6 +336,7 @@ export default function AttendancePage() {
       return () => clearInterval(interval);
     }
   }, [isCameraReady, isModelsLoaded, isMounted]);
+  */
 
   // Shift/schedule name from API
   const shiftName = attendanceData?.jam_kerja?.nama_jam_kerja || 'Memuat...';
@@ -365,51 +369,17 @@ export default function AttendancePage() {
                 objectFit: 'cover', 
                 objectPosition: 'center',
                 transform: 'scaleX(-1)',
-                filter: isFaceDetected ? 'none' : 'grayscale(30%)'
+                // filter: isFaceDetected ? 'none' : 'grayscale(30%)'
               }}
             />
         </div>
 
-        {/* Face Detection Scanner Overlay */}
+        {/* Face Detection Scanner Overlay (hidden) */}
+        {/* 
         <div style={{ position: 'absolute', top: 0, left: 0, right: 0, bottom: '180px', pointerEvents: 'none', display: 'flex', alignItems: 'center', justifyContent: 'center', zIndex: 5 }}>
-          <div style={{ 
-            width: '240px', 
-            height: '240px', 
-            border: `2px solid ${isFaceDetected ? '#22c55e' : 'rgba(255,255,255,0.3)'}`,
-            borderRadius: '40px',
-            position: 'relative',
-            boxShadow: isFaceDetected ? '0 0 30px rgba(34,197,94,0.3)' : 'none',
-            transition: 'all 0.3s ease'
-          }}>
-             {/* Corner brackets */}
-             <div style={{ position: 'absolute', top: -10, left: -10, width: '40px', height: '40px', borderTop: `4px solid ${isFaceDetected ? '#22c55e' : '#ffffff'}`, borderLeft: `4px solid ${isFaceDetected ? '#22c55e' : '#ffffff'}`, borderRadius: '4px 0 0 0' }} />
-             <div style={{ position: 'absolute', top: -10, right: -10, width: '40px', height: '40px', borderTop: `4px solid ${isFaceDetected ? '#22c55e' : '#ffffff'}`, borderRight: `4px solid ${isFaceDetected ? '#22c55e' : '#ffffff'}`, borderRadius: '0 4px 0 0' }} />
-             <div style={{ position: 'absolute', bottom: -10, left: -10, width: '40px', height: '40px', borderBottom: `4px solid ${isFaceDetected ? '#22c55e' : '#ffffff'}`, borderLeft: `4px solid ${isFaceDetected ? '#22c55e' : '#ffffff'}`, borderRadius: '0 0 0 4px' }} />
-             <div style={{ position: 'absolute', bottom: -10, right: -10, width: '40px', height: '40px', borderBottom: `4px solid ${isFaceDetected ? '#22c55e' : '#ffffff'}`, borderRight: `4px solid ${isFaceDetected ? '#22c55e' : '#ffffff'}`, borderRadius: '0 0 4px 0' }} />
-             
-             {/* Scanning Line */}
-             {!isFaceDetected && isModelsLoaded && (
-               <div style={{
-                 position: 'absolute',
-                 left: '10px',
-                 right: '10px',
-                 height: '2px',
-                 background: 'linear-gradient(90deg, transparent, #3b82f6, transparent)',
-                 boxShadow: '0 0 10px #3b82f6',
-                 animation: 'scan-line 3s linear infinite',
-                 top: '50%'
-               }} />
-             )}
-          </div>
-
-          <style>{`
-            @keyframes scan-line {
-              0% { top: 10%; }
-              50% { top: 90%; }
-              100% { top: 10%; }
-            }
-          `}</style>
+          ...
         </div>
+        */}
 
         {/* Top Controls Overlay */}
         <div style={{ position: 'absolute', top: '24px', left: '16px', right: '16px', display: 'flex', justifyContent: 'space-between', alignItems: 'center', zIndex: 10 }}>
@@ -439,25 +409,12 @@ export default function AttendancePage() {
           </div>
         </div>
 
-        {/* Face Detection Status Badge */}
+        {/* Face Detection Status Badge (hidden) */}
+        {/* 
         <div style={{ position: 'absolute', top: hasCheckedIn ? '140px' : '80px', left: '50%', transform: 'translateX(-50%)', zIndex: 11 }}>
-            <div style={{
-                background: isFaceDetected ? 'rgba(34,197,94,0.95)' : 'rgba(239,68,68,0.95)',
-                backdropFilter: 'blur(10px)',
-                padding: '6px 14px',
-                borderRadius: '50px',
-                display: 'flex',
-                alignItems: 'center',
-                gap: '8px',
-                boxShadow: '0 4px 15px rgba(0,0,0,0.15)',
-                whiteSpace: 'nowrap'
-            }}>
-                {isFaceDetected ? <IconFaceId size={18} color="#ffffff" /> : <IconScan size={18} color="#ffffff" />}
-                <span style={{ fontSize: '11px', fontWeight: 800, color: '#ffffff', textTransform: 'uppercase', letterSpacing: '0.5px' }}>
-                    {isModelsLoaded ? (isFaceDetected ? 'Wajah Terdeteksi' : 'Posisikan Wajah Anda') : 'Memuat Sensor...'}
-                </span>
-            </div>
+           ...
         </div>
+        */}
 
         {/* Check-in status overlay */}
         {hasCheckedIn && (
