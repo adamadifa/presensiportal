@@ -272,7 +272,7 @@ export const authService = {
     });
 
     if (!response.ok) {
-      throw new Error('Failed to fetch profile');
+      throw new Error(`Failed to fetch profile: ${response.status}`);
     }
 
     return response.json();
