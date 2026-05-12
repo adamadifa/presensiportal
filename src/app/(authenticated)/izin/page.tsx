@@ -259,8 +259,8 @@ export default function IzinPage() {
         )}
       </div>
 
-      {/* Floating Action Button */}
-      {isFabOpen && (
+      {/* Floating Action Button - Hidden for now */}
+      {/* {isFabOpen && (
         <div 
           onClick={() => setIsFabOpen(false)}
           style={{ position: 'fixed', top: 0, left: 0, right: 0, bottom: 0, background: 'rgba(0,0,0,0.4)', backdropFilter: 'blur(4px)', zIndex: 100 }} 
@@ -310,7 +310,7 @@ export default function IzinPage() {
         >
           <IconPlus size={32} stroke={2.5} />
         </button>
-      </div>
+      </div> */}
 
       <IzinSubmissionModal 
         isOpen={isModalOpen}
