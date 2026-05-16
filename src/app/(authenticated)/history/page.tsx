@@ -162,7 +162,7 @@ export default function HistoryPage() {
                 let statusLabel = item.keterangan || 'Hadir';
 
                 if (item.status === 'h') {
-                  if (item.terlambat_min > 0 || item.diffterlambat > 0) {
+                  if (item.terlambat_min > 0 || (item.diffterlambat ?? 0) > 0) {
                     statusColor = '#ef4444';
                     statusLabel = item.terlambat_keterangan || `Telat ${item.terlambat_min}m`;
                   } else if (item.pulang_cepat_min > 0) {
