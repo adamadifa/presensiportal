@@ -315,6 +315,23 @@ export default function SlipGajiDetailPage() {
                     <span>TOTAL POTONGAN</span>
                     <span>{formatRupiah(summary.potongan.total)}</span>
                   </div>
+
+                  {summary.potongan.details && summary.potongan.details.length > 0 && (
+                    <div style={{ marginTop: '16px', padding: '12px', background: '#fef2f2', borderRadius: '12px', border: '1px solid #fee2e2' }}>
+                      <p style={{ fontSize: '11px', fontWeight: 800, color: '#991b1b', margin: '0 0 8px 0', textTransform: 'uppercase' }}>Rincian Denda & Lupa Absen</p>
+                      {summary.potongan.details.map((detail, index) => (
+                        <div key={index} style={{ marginBottom: index === summary.potongan.details!.length - 1 ? 0 : '8px', paddingBottom: index === summary.potongan.details!.length - 1 ? 0 : '8px', borderBottom: index === summary.potongan.details!.length - 1 ? 'none' : '1px dashed #fecaca' }}>
+                          <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start' }}>
+                            <span style={{ fontSize: '12px', fontWeight: 700, color: '#1e293b' }}>{detail.tanggal}</span>
+                            <span style={{ fontSize: '12px', fontWeight: 800, color: '#ef4444' }}>{formatRupiah(detail.denda)}</span>
+                          </div>
+                          <p style={{ fontSize: '11px', color: '#64748b', margin: '2px 0 0 0' }}>
+                            {detail.alasan ? `Lupa Absen: ${detail.alasan}` : `Keterlambatan: ${detail.terlambat}`}
+                          </p>
+                        </div>
+                      ))}
+                    </div>
+                  )}
                 </div>
               </div>
 

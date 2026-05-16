@@ -379,9 +379,9 @@ export default function DashboardPage() {
 
                 // Map status codes to colors
                 if (item.status === 'h') {
-                  if (item.terlambat_min > 0) {
+                  if (item.terlambat_min > 0 || item.diffterlambat > 0) {
                     statusColor = '#ef4444';
-                    statusLabel = `Telat ${item.terlambat_min}m`;
+                    statusLabel = item.terlambat_keterangan || `Telat ${item.terlambat_min}m`;
                   } else if (item.pulang_cepat_min > 0) {
                     statusColor = '#f59e0b';
                     statusLabel = 'Pulang Cepat';
@@ -473,8 +473,20 @@ export default function DashboardPage() {
                           
                           <div style={{ display: 'flex', flexWrap: 'wrap', gap: '6px' }}>
                             {item.denda > 0 && (
-                              <div style={{ background: '#fef2f2', border: '1px solid #fee2e2', color: '#ef4444', padding: '1px 6px', borderRadius: '4px', fontSize: '9px', fontWeight: 700 }}>
-                                Rp {item.denda.toLocaleString('id-ID')}
+                              <div style={{ 
+                                background: '#fef2f2', 
+                                border: '1px solid #fee2e2', 
+                                color: '#ef4444', 
+                                padding: '1px 6px', 
+                                borderRadius: '4px', 
+                                fontSize: '9px', 
+                                fontWeight: 700,
+                                display: 'flex',
+                                alignItems: 'center',
+                                gap: '4px'
+                              }}>
+                                <span>Rp {item.denda.toLocaleString('id-ID')}</span>
+                                {item.alasan && <span style={{ opacity: 0.7, fontWeight: 500 }}>({item.alasan})</span>}
                               </div>
                             )}
                             <div style={{ background: '#f8fafc', border: '1px solid #e2e8f0', color: '#64748b', padding: '1px 6px', borderRadius: '4px', fontSize: '9px', fontWeight: 700 }}>

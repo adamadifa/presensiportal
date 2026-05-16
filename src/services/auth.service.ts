@@ -28,8 +28,11 @@ export interface AttendanceHistory {
   jam_out: string | null;
   status: 'h' | 'i' | 's' | 'c';
   terlambat_min: number;
+  terlambat_keterangan?: string;
+  diffterlambat?: number;
   pulang_cepat_min: number;
   denda: number;
+  alasan?: string;
   keterangan: string;
 }
 
@@ -156,6 +159,14 @@ export interface SlipSummary {
     spip: number;
     pengurang: number;
     total: number;
+    details?: Array<{
+      tanggal: string;
+      jam_in: string | null;
+      jam_mulai: string;
+      terlambat: string;
+      denda: number;
+      alasan: string;
+    }>;
   };
   penambah: number;
   bruto: number;
