@@ -3,7 +3,8 @@
 import { useEffect, useState } from 'react';
 import { useRouter } from 'next/navigation';
 import { authService, Employee } from '@/services/auth.service';
-import { IconChevronLeft, IconLock, IconLogout, IconUser, IconKey, IconEye, IconEyeOff, IconLoader2, IconCircleCheck } from '@tabler/icons-react';
+import { pushService } from '@/services/push.service';
+import { IconChevronLeft, IconLock, IconLogout, IconUser, IconKey, IconEye, IconEyeOff, IconLoader2, IconCircleCheck, IconBellRinging, IconBellOff } from '@tabler/icons-react';
 import Swal from 'sweetalert2';
 
 export default function ProfilePage() {
@@ -22,6 +23,9 @@ export default function ProfilePage() {
     new_password: '',
     new_password_confirmation: '',
   });
+  
+  const [isPushEnabled, setIsPushEnabled] = useState(false);
+  const [isPushLoading, setIsPushLoading] = useState(true);
 
   useEffect(() => {
     const token = authService.getToken();
@@ -45,6 +49,14 @@ export default function ProfilePage() {
     }).finally(() => {
       setIsLoading(false);
     });
+
+    const checkPushStatus = async () => {
+      const permission = await pushService.checkPermission();
+      const subscription = await pushService.getSubscription();
+      setIsPushEnabled(permission === 'granted' && !!subscription);
+      setIsPushLoading(false);
+    };
+    checkPushStatus();
   }, [router]);
 
   const handleLogout = async () => {
@@ -127,6 +139,65 @@ export default function ProfilePage() {
     }
   };
 
+  const handlePushToggle = async () => {
+    setIsPushLoading(true);
+    const token = authService.getToken();
+    
+    try {
+      if (!token) throw new Error('Unauthorized');
+      
+      if (isPushEnabled) {
+        // Unsubscribe
+        const res = await pushService.unsubscribeUser(token);
+        if (res.success) {
+          setIsPushEnabled(false);
+          Swal.fire({
+            icon: 'success',
+            title: 'Berhasil',
+            text: 'Notifikasi telah dinonaktifkan.',
+            timer: 2000,
+            showConfirmButton: false,
+            customClass: { popup: 'rounded-2xl' }
+          });
+        }
+      } else {
+        // Subscribe
+        const permission = await Notification.requestPermission();
+        if (permission === 'granted') {
+          const res = await pushService.subscribeUser(token);
+          if (res.success) {
+            setIsPushEnabled(true);
+            Swal.fire({
+              icon: 'success',
+              title: 'Berhasil',
+              text: 'Notifikasi telah diaktifkan.',
+              timer: 2000,
+              showConfirmButton: false,
+              customClass: { popup: 'rounded-2xl' }
+            });
+          }
+        } else {
+          Swal.fire({
+            icon: 'warning',
+            title: 'Izin Ditolak',
+            text: 'Anda perlu mengizinkan notifikasi di browser Anda.',
+            customClass: { popup: 'rounded-2xl' }
+          });
+        }
+      }
+    } catch (error: any) {
+      console.error('Push toggle error:', error);
+      Swal.fire({
+        icon: 'error',
+        title: 'Error',
+        text: error.message || 'Terjadi kesalahan saat memproses notifikasi.',
+        customClass: { popup: 'rounded-2xl' }
+      });
+    } finally {
+      setIsPushLoading(false);
+    }
+  };
+
   if (isLoading) {
     return (
       <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', minHeight: '100dvh', background: '#f8fafc' }}>
@@ -181,6 +252,52 @@ export default function ProfilePage() {
               <p style={{ fontSize: '12px', color: '#1e293b', fontWeight: 700 }}>{user?.nama_cabang || '-'}</p>
             </div>
           </div>
+        </div>
+        
+        {/* Push Notification Toggle */}
+        <div style={{ background: '#ffffff', borderRadius: '24px', padding: '20px 24px', boxShadow: '0 10px 25px rgba(0,0,0,0.05)', display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: '20px' }}>
+          <div style={{ display: 'flex', alignItems: 'center', gap: '12px' }}>
+            <div style={{ width: '40px', height: '40px', borderRadius: '12px', background: isPushEnabled ? '#ecfdf5' : '#fef2f2', display: 'flex', alignItems: 'center', justifyContent: 'center', color: isPushEnabled ? '#10b981' : '#ef4444' }}>
+              {isPushEnabled ? <IconBellRinging size={22} /> : <IconBellOff size={22} />}
+            </div>
+            <div>
+              <p style={{ fontSize: '14px', fontWeight: 800, color: '#1e293b' }}>Notifikasi Push</p>
+              <p style={{ fontSize: '12px', color: '#64748b', fontWeight: 500 }}>{isPushEnabled ? 'Aktif' : 'Nonaktif'}</p>
+            </div>
+          </div>
+          
+          <button 
+            onClick={handlePushToggle}
+            disabled={isPushLoading}
+            style={{
+              position: 'relative',
+              width: '52px',
+              height: '28px',
+              background: isPushEnabled ? '#10b981' : '#94a3b8',
+              borderRadius: '14px',
+              border: 'none',
+              cursor: isPushLoading ? 'not-allowed' : 'pointer',
+              transition: 'all 0.3s ease',
+              opacity: isPushLoading ? 0.7 : 1
+            }}
+          >
+            <div style={{
+              position: 'absolute',
+              top: '3px',
+              left: isPushEnabled ? '27px' : '3px',
+              width: '22px',
+              height: '22px',
+              background: '#ffffff',
+              borderRadius: '50%',
+              transition: 'all 0.3s cubic-bezier(0.68, -0.55, 0.265, 1.55)',
+              boxShadow: '0 2px 4px rgba(0,0,0,0.2)',
+              display: 'flex',
+              alignItems: 'center',
+              justifyContent: 'center'
+            }}>
+              {isPushLoading && <IconLoader2 size={12} className="animate-spin" color={isPushEnabled ? '#10b981' : '#94a3b8'} />}
+            </div>
+          </button>
         </div>
 
         {/* Change Password Form */}
